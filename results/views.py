@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.db.models import Q
 
-from .models import CityData, VoteData, VoteResult, CandidateData
+from .models import CityData, VoteData, VoteResult, CandidateData, VoivodeshipData
 
 infinity = 1000000000
 
@@ -33,12 +33,14 @@ population_splits = [
     100000
 ]
 
+
 class Tuple:
     vote_candidate1 = 0
     vote_candidate2 = 0
     vote_count = 0
     vote_candidate1_percentage = "0"
     vote_candidate2_percentage = "0"
+
 
 def get_boats_and_abroad(vote_candidate1, vote_candidate2):
     candidate1 = vote_candidate1.all().filter(Q(vote_data__town__town_type=CityData.BOAT) |
@@ -52,13 +54,17 @@ def get_boats_and_abroad(vote_candidate1, vote_candidate2):
     for v in candidate2:
         t.vote_candidate2 += v.vote_count
     t.vote_count = t.vote_candidate1 + t.vote_candidate2
-    t.vote_candidate1_percentage = "%.2f" % (100.0 * t.vote_candidate1 / t.vote_count)
-    t.vote_candidate2_percentage = "%.2f" % (100.0 * t.vote_candidate2 / t.vote_count)
+    t.vote_candidate1_percentage = "%.2f" % (
+        100.0 * t.vote_candidate1 / t.vote_count)
+    t.vote_candidate2_percentage = "%.2f" % (
+        100.0 * t.vote_candidate2 / t.vote_count)
     return t
+
 
 def get_results_by_population(vote_candidate1, vote_candidate2):
     results_by_population = []
-    results_by_population.append(("statki i zagranica", get_boats_and_abroad(vote_candidate1, vote_candidate2)))
+    results_by_population.append(
+        ("statki i zagranica", get_boats_and_abroad(vote_candidate1, vote_candidate2)))
     candidate1 = vote_candidate1.all().filter(Q(vote_data__town__town_type=CityData.TOWN) |
                                               Q(vote_data__town__town_type=CityData.VILLAGE))
     candidate2 = vote_candidate2.all().filter(Q(vote_data__town__town_type=CityData.TOWN) |
@@ -83,16 +89,20 @@ def get_results_by_population(vote_candidate1, vote_candidate2):
         t.vote_count = t.vote_candidate1 + t.vote_candidate2
         if t.vote_count == 0:
             continue
-        t.vote_candidate1_percentage = "%.2f" % (100.0 * t.vote_candidate1 / t.vote_count)
-        t.vote_candidate2_percentage = "%.2f" % (100.0 * t.vote_candidate2 / t.vote_count)
+        t.vote_candidate1_percentage = "%.2f" % (
+            100.0 * t.vote_candidate1 / t.vote_count)
+        t.vote_candidate2_percentage = "%.2f" % (
+            100.0 * t.vote_candidate2 / t.vote_count)
         results_by_population.append((id, t))
     return results_by_population
+
 
 def get_results_by_voivodeship(vote_candidate1, vote_candidate2):
     result_by_voivodeship = {}
     vote_result_candidate1 = 0
     vote_result_candidate2 = 0
-    for v in vote_candidate1:
+
+    for v in vote_candidate1.select_related("vote_data__town__voivodeship"):
         voivodeship = v.vote_data.town.voivodeship
         if voivodeship is None:
             continue
@@ -101,7 +111,7 @@ def get_results_by_voivodeship(vote_candidate1, vote_candidate2):
         result_by_voivodeship[voivodeship].vote_candidate1 += v.vote_count
         vote_result_candidate1 += v.vote_count
 
-    for v in vote_candidate2:
+    for v in vote_candidate2.select_related("vote_data__town__voivodeship"):
         voivodeship = v.vote_data.town.voivodeship
         if voivodeship is None:
             continue
@@ -112,9 +122,12 @@ def get_results_by_voivodeship(vote_candidate1, vote_candidate2):
 
     for key, value in result_by_voivodeship.items():
         value.vote_count = value.vote_candidate1 + value.vote_candidate2
-        value.vote_candidate1_percentage = "%.2f" % (100.0 * value.vote_candidate1 / value.vote_count)
-        value.vote_candidate2_percentage = "%.2f" % (100.0 * value.vote_candidate2 / value.vote_count)
+        value.vote_candidate1_percentage = "%.2f" % (
+            100.0 * value.vote_candidate1 / value.vote_count)
+        value.vote_candidate2_percentage = "%.2f" % (
+            100.0 * value.vote_candidate2 / value.vote_count)
     return result_by_voivodeship.items(), vote_result_candidate1, vote_result_candidate2
+
 
 def get_map_colors(result_by_voivodeship):
     lst = []
@@ -154,7 +167,8 @@ def get_map_colors(result_by_voivodeship):
     for i in lst:
         voivodeship_colors.append(i[1])
     return voivodeship_colors, candidate1_percentages, \
-           candidate2_percentages, candidate1_colors, candidate2_colors
+        candidate2_percentages, candidate1_colors, candidate2_colors
+
 
 def get_results_by_town_type(vote_candidate1, vote_candidate2):
     results_by_town_type = {}
@@ -167,11 +181,14 @@ def get_results_by_town_type(vote_candidate1, vote_candidate2):
         r.vote_count = r.vote_candidate1 + r.vote_candidate2
         if r.vote_count == 0:
             continue
-        r.vote_candidate1_percentage = "%.2f" % (100.0 * r.vote_candidate1 / r.vote_count)
-        r.vote_candidate2_percentage = "%.2f" % (100.0 * r.vote_candidate2 / r.vote_count)
+        r.vote_candidate1_percentage = "%.2f" % (
+            100.0 * r.vote_candidate1 / r.vote_count)
+        r.vote_candidate2_percentage = "%.2f" % (
+            100.0 * r.vote_candidate2 / r.vote_count)
 
         results_by_town_type[t[1]] = r
     return results_by_town_type.items()
+
 
 def index(request):
     candidate1 = CandidateData.objects.all()[0]
@@ -182,17 +199,18 @@ def index(request):
     city_data = CityData.objects.all()
 
     result_by_voivodeship, \
-    vote_result_candidate1,\
-    vote_result_candidate2 = get_results_by_voivodeship(vote_candidate1, vote_candidate2)
+        vote_result_candidate1, \
+        vote_result_candidate2 = get_results_by_voivodeship(vote_candidate1, vote_candidate2)
     vote_count = vote_result_candidate1 + vote_result_candidate2
 
     voivodeship_colors, \
-    candidate1_percentages, \
-    candidate2_percentages, \
-    candidate1_colors, \
-    candidate2_colors = get_map_colors(result_by_voivodeship)
+        candidate1_percentages, \
+        candidate2_percentages, \
+        candidate1_colors, \
+        candidate2_colors =  get_map_colors(result_by_voivodeship)
 
-    results_by_town_type = get_results_by_town_type(vote_candidate1, vote_candidate2)
+    results_by_town_type = get_results_by_town_type(
+        vote_candidate1, vote_candidate2)
 
     all_vote_count = 0
     form_count = 0
@@ -210,27 +228,27 @@ def index(request):
     population_density = "%.0f" % (citizen_count / area)
 
     context = {
-        "candidate1" : candidate1,
-        "candidate2" : candidate2,
-        "result_by_voivodeship" : result_by_voivodeship,
-        "vote_count" : vote_count,
-        "result_candidate1" : vote_result_candidate1,
-        "result_candidate2" : vote_result_candidate2,
-        "result_candidate1_percentage" : "%.2f" % (100.0 * vote_result_candidate1 / vote_count),
-        "result_candidate2_percentage" : "%.2f" % (100.0 * vote_result_candidate2 / vote_count),
-        "colors" : voivodeship_colors,
-        "candidate1_percentages" : candidate1_percentages,
-        "candidate2_percentages" : candidate2_percentages,
-        "candidate1_colors" : candidate1_colors,
-        "candidate2_colors" : candidate2_colors,
-        "all_vote_count" : all_vote_count,
-        "form_count" : form_count,
-        "authorized_citizen_count" : authorized_citizen_count,
-        "citizen_count" : citizen_count,
-        "area" : area,
-        "population_density" : population_density,
-        "results_by_town_type" : results_by_town_type,
-        "results_by_population" : get_results_by_population(vote_candidate1, vote_candidate2)
+        "candidate1": candidate1,
+        "candidate2": candidate2,
+        "result_by_voivodeship": result_by_voivodeship,
+        "vote_count": vote_count,
+        "result_candidate1": vote_result_candidate1,
+        "result_candidate2": vote_result_candidate2,
+        "result_candidate1_percentage": "%.2f" % (100.0 * vote_result_candidate1 / vote_count),
+        "result_candidate2_percentage": "%.2f" % (100.0 * vote_result_candidate2 / vote_count),
+        "colors": voivodeship_colors,
+        "candidate1_percentages": candidate1_percentages,
+        "candidate2_percentages": candidate2_percentages,
+        "candidate1_colors": candidate1_colors,
+        "candidate2_colors": candidate2_colors,
+        "all_vote_count": all_vote_count,
+        "form_count": form_count,
+        "authorized_citizen_count": authorized_citizen_count,
+        "citizen_count": citizen_count,
+        "area": area,
+        "population_density": population_density,
+        "results_by_town_type": results_by_town_type,
+        "results_by_population": get_results_by_population(vote_candidate1, vote_candidate2)
     }
 
     return HttpResponse(render(request, "results/index.html", context))

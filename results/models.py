@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 
+
 # Create your models here.
 
 
@@ -25,9 +26,9 @@ class CityData(models.Model):
     )
 
     town_name = models.CharField(max_length=200, unique=True)
-    town_type = models.CharField(max_length=200, choices=TOWN_TYPE_CHOICES)
+    town_type = models.CharField(max_length=200, db_index=True, choices=TOWN_TYPE_CHOICES)
     voivodeship = models.ForeignKey(VoivodeshipData, on_delete=models.CASCADE, null=True, blank=True)
-    citizen_count = models.PositiveIntegerField()
+    citizen_count = models.PositiveIntegerField(db_index=True)
 
     class Meta:
         unique_together = ('town_name', 'voivodeship')
@@ -37,22 +38,17 @@ class CityData(models.Model):
 
 
 class VoteData(models.Model):
-    town = models.OneToOneField(CityData, on_delete=models.CASCADE)
+    town = models.OneToOneField(CityData, db_index=True, on_delete=models.CASCADE)
     authorized_citizen_count = models.PositiveIntegerField()
     vote_forms_count = models.PositiveIntegerField()
     vote_count = models.PositiveIntegerField()
 
     def clean(self):
-        try:
-            if not (self.town.citizen_count >=
-                        self.authorized_citizen_count >=
-                        self.vote_forms_count >=
-                        self.vote_count):
-                raise ValidationError("Invalid vote data.")
-        except ValidationError:
-            raise
-        except:
-            pass
+        if not (self.town.citizen_count >=
+                    self.authorized_citizen_count >=
+                    self.vote_forms_count >=
+                    self.vote_count):
+            raise ValidationError("Invalid vote data.")
 
     def __str__(self):
         return str(self.town) + ", vote count = " + str(self.vote_count)
