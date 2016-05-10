@@ -3,6 +3,7 @@ from results.models import CandidateData, VoteData, VoteResult
 
 import random
 
+
 class Command(BaseCommand):
     def voivodeship_winner(self, name):
         sum = 0

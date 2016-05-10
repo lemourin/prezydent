@@ -34,11 +34,14 @@ body {
 }
 
 .content {
-    position: relative;
+}
+
+.top_content {
 }
 
 .map_root {
     font-size: 90%;
+    display: inline-block;
 }
 
 .map {
@@ -49,11 +52,16 @@ body {
     height: 10px;
 }
 
+.right_side {
+    display: inline-block;
+    vertical-align: bottom;
+}
+
+.login_form {
+}
+
 .see_also {
-    position: absolute;
     font-size: 75%;
-    right: 0;
-    top: 0;
     width: 350px;
 }
 
@@ -62,11 +70,6 @@ body {
 }
 
 .summary {
-    position: absolute;
-    right: 0;
-    top: 220px;
-    width: 360px;
-    height: 120px;
     background: lightyellow;
     font-size: 110%;
     border-radius: 5px;
@@ -131,13 +134,15 @@ footer {
         display: none;
     }
 
-    .summary {
-        position: relative;
-        top: 0;
-        left: 0;
-        width: 290px;
-        height: 100px;
+    .right_side {
+        display: block;
         margin: auto;
+        width: 300px;
+    }
+
+    .login_form {
+        margin: auto;
+        width: 150px;
     }
 
     .page_root {

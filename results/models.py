@@ -4,6 +4,12 @@ from django.core.exceptions import ValidationError
 
 # Create your models here.
 
+class AccountData(models.Model):
+    username =  models.CharField(max_length=20, db_index=True, unique=True)
+    password = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.username
 
 class VoivodeshipData(models.Model):
     name = models.CharField(max_length=200, unique=True)

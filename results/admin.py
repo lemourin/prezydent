@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 
-from results.models import CityData, VoivodeshipData, VoteData, CandidateData, VoteResult
+from results.models import CityData, VoivodeshipData, VoteData, CandidateData, VoteResult, AccountData
 
 class CityDataAdmin(admin.ModelAdmin):
     search_fields = [
@@ -24,3 +24,4 @@ admin.site.register(VoivodeshipData)
 admin.site.register(VoteData, VoteDataAdmin)
 admin.site.register(CandidateData)
 admin.site.register(VoteResult, VoteResultAdmin)
+admin.site.register(AccountData)

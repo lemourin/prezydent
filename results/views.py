@@ -5,7 +5,9 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.db.models import Q
 
-from .models import CityData, VoteData, VoteResult, CandidateData, VoivodeshipData
+from .models import CityData, VoteData, VoteResult, CandidateData, AccountData
+
+import json
 
 infinity = 1000000000
 
@@ -252,3 +254,21 @@ def index(request):
     }
 
     return HttpResponse(render(request, "results/index.html", context))
+
+
+def login_form(request):
+    login = request.POST["username"]
+    password = request.POST["password"]
+
+    response = {}
+    try:
+        account = AccountData.objects.get(username=login)
+        if password != account.password:
+            response["error"] = "Invalid password."
+        else:
+            response["ok"] = "Logged in as " + login + "."
+    except AccountData.DoesNotExist:
+        response["error"] = "Login not found"
+
+    return HttpResponse(json.dumps(response),
+                        content_type="application/json")

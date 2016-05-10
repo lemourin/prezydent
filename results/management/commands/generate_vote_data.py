@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from results.models import CandidateData, VoteData, VoteResult, CityData
 
+
 class Command(BaseCommand):
     def handle(self, *args, **options):
         for obj in CityData.objects.all():
