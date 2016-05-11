@@ -103,17 +103,33 @@ body {
 }
 
 .results_by_population {
-    position: relative;
-    top: 50px;
+    margin-top: 50px;
 }
 
 .result_cell {
     text-align: right;
 }
 
-footer {
-    position: relative;
+.edit_root {
+    position: fixed;
+    left: 100px;
     top: 100px;
+    background: grey;
+    display: none;
+}
+
+.edit_data {
+    overflow-y: auto;
+    height: 500px;
+    width: 400px;
+    background: darkgray;
+}
+
+.edit_header {
+    font-size: 150%;
+}
+
+footer {
 }
 
 @media screen and (max-width: 680px) {

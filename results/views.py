@@ -4,10 +4,11 @@ from django.shortcuts import render
 
 from django.http import HttpResponse
 from django.db.models import Q
+from django.template import Context, Template
 
 from .models import CityData, VoteData, VoteResult, CandidateData, AccountData
 
-import json
+import json, string
 
 infinity = 1000000000
 
@@ -197,8 +198,6 @@ def index(request):
     candidate2 = CandidateData.objects.all()[1]
     vote_candidate1 = VoteResult.objects.all().filter(candidate=candidate1)
     vote_candidate2 = VoteResult.objects.all().filter(candidate=candidate2)
-    vote_data = VoteData.objects.all()
-    city_data = CityData.objects.all()
 
     result_by_voivodeship, \
         vote_result_candidate1, \
@@ -217,13 +216,13 @@ def index(request):
     all_vote_count = 0
     form_count = 0
     authorized_citizen_count = 0
-    for v in vote_data:
+    for v in VoteData.objects.all():
         all_vote_count += v.vote_count
         form_count += v.vote_forms_count
         authorized_citizen_count += v.authorized_citizen_count
 
     citizen_count = 0
-    for v in city_data:
+    for v in CityData.objects.all():
         citizen_count += v.citizen_count
 
     area = 312685
@@ -272,3 +271,45 @@ def login_form(request):
 
     return HttpResponse(json.dumps(response),
                         content_type="application/json")
+
+
+def edit_form(request):
+    filter_request = str(request.POST["filter"])
+    candidate1 = CandidateData.objects.all()[0]
+    candidate2 = CandidateData.objects.all()[1]
+    vote_candidate1 = VoteResult.objects.all().filter(candidate=candidate1)
+    vote_candidate2 = VoteResult.objects.all().filter(candidate=candidate2)
+    context = {}
+    response = {}
+
+    if filter_request.startswith("result_by_voivodeship"):
+        voivodeship = str(filter_request.replace("result_by_voivodeship_", ""))
+        response["edit_data"] = voivodeship
+
+        data = {}
+        for v in vote_candidate1.select_related("vote_data__town__voivodeship__name",
+                                                "vote_data__town__town_name",
+                                                "vote_data__town").\
+                filter(vote_data__town__voivodeship__name=voivodeship):
+            if v.vote_data.town not in data:
+                data[v.vote_data.town] = {}
+            data[v.vote_data.town]["candidate1"] = v.vote_count
+
+        for v in vote_candidate2.select_related("vote_data__town__voivodeship__name",
+                                                "vote_data__town__town_name",
+                                                "vote_data__town"). \
+                filter(vote_data__town__voivodeship__name=voivodeship):
+            if v.vote_data.town not in data:
+                data[v.vote_data.town] = {}
+            data[v.vote_data.town]["candidate2"] = v.vote_count
+        lst = []
+        for key, value in data.items():
+            lst.append({
+                "town" : key.town_name,
+                "candidate1" : value["candidate1"],
+                "candidate2" : value["candidate2"]})
+        context["data"] = lst
+
+    response["page"] = Template(open("results/templates/results/edit_form.html").read()).\
+        render(Context(context))
+    return HttpResponse(json.dumps(response), content_type="application/json")

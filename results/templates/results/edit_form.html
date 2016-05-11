@@ -1,0 +1,11 @@
+<section>
+    <table>
+        {% for v in data %}
+            <tr>
+                <td>{{ v.town }}</td>
+                <td class="result_cell">{{ v.candidate1 }}</td>
+                <td class="result_cell">{{ v.candidate2 }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</section>

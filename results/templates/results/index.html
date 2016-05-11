@@ -199,7 +199,7 @@
                 </tr>
                 {% for where, vote in result_by_voivodeship  %}
                     <tr>
-                        <td>{{ where }}, woj</td>
+                        <td id="result_by_voivodeship_{{ where }}">{{ where }}, woj</td>
                         <td class="result_cell">{{ vote.vote_count }}</td>
                         <td class="result_cell">{{ vote.vote_candidate1 }}</td>
                         <td class="result_cell">{{ vote.vote_candidate1_percentage }}</td>
@@ -315,6 +315,14 @@
     <footer>
         Copyright
     </footer>
+</section>
+<section class="edit_root" id="edit_root">
+    <section class="edit_header">
+        <p id="edited_voivodeship_name"></p>
+        <input type="button" id="close_button" value="Zamknij">
+    </section>
+    <section class="edit_data" id="edit_data">
+    </section>
 </section>
 </body>
 </html>
