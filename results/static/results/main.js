@@ -84,19 +84,18 @@ function create_edit_form(id) {
             });
             $("[id^=result_modify_error_button_]").on("click", function(event) {
                 var town_id = this.id.replace("result_modify_error_button_", "");
+                var c1 = $("#result_modify_town_candidate1_" + town_id);
+                var c2 = $("#result_modify_town_candidate2_" + town_id);
                 $("#result_modify_error_" + town_id).css("display", "none");
                 $("#result_modify_button_" + town_id).css("display", "inline");
+                c1.prop("value", c1.attr("value"));
+                c2.prop("value", c2.attr("value"));
             });
             $("[id^=result_modify_confirm_button_]").on("click", function(event) {
                 var town_id = this.id.replace("result_modify_confirm_button_", "");
                 var c1 = $("#result_modify_town_candidate1_" + town_id);
                 var c2 = $("#result_modify_town_candidate2_" + town_id);
-
-                function on_failed_modify() {
-                    c1.prop("value", c1.attr("value"));
-                    c2.prop("value", c2.attr("value"));
-                }
-
+                
                 $("#result_modify_confirm_" + town_id).css("display", "none");
                 if (this.value == "Tak") {
                     $.ajax({
@@ -111,7 +110,6 @@ function create_edit_form(id) {
                             if ("error" in json) {
                                 $("#result_modify_error_" + town_id).css("display", "inline");
                                 $("#result_modify_error_description_" + town_id).html(json["error"]);
-                                on_failed_modify();
                             } else {
                                 $("#result_modify_button_" + town_id).css("display", "inline");
                                 c1.attr("value", c1.prop("value"));
@@ -121,7 +119,8 @@ function create_edit_form(id) {
                     });
                 } else {
                     $("#result_modify_button_" + town_id).css("display", "inline");
-                    on_failed_modify();
+                    c1.prop("value", c1.attr("value"));
+                    c2.prop("value", c2.attr("value"));
                 }
             });
         },
