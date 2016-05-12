@@ -105,8 +105,8 @@
                 <section class="login_form">
                     <form method="POST" id="login_form">
                         {% csrf_token %}
-                        Login: <input type="text" id="username" /><br>
-                        Hasło: <input type="password" id="password" /><br>
+                        Login: <input size=10 type="text" id="username" /><br>
+                        Hasło: <input size=10 type="password" id="password" /><br>
                         <input type="submit" value="Zaloguj" />
                     </form>
                 </section>
@@ -317,12 +317,7 @@
     </footer>
 </section>
 <section class="edit_root" id="edit_root">
-    <section class="edit_header">
-        <p id="edited_voivodeship_name"></p>
-        <input type="button" id="close_button" value="Zamknij">
-    </section>
-    <section class="edit_data" id="edit_data">
-    </section>
+
 </section>
 </body>
 </html>

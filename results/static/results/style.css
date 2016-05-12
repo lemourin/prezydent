@@ -110,6 +110,10 @@ body {
     text-align: right;
 }
 
+.result_input {
+    background-color: white;
+}
+
 .edit_root {
     position: fixed;
     left: 100px;
@@ -121,7 +125,6 @@ body {
 .edit_data {
     overflow-y: auto;
     height: 500px;
-    width: 400px;
     background: darkgray;
 }
 

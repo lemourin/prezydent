@@ -1,11 +1,45 @@
 <section>
-    <table>
-        {% for v in data %}
+    <section class="edit_header">
+        <p>{{ edit_data }}</p>
+        <input type="button" id="close_button" value="Zamknij">
+    </section>
+    <section class="edit_data">
+        <table>
+            <thead>
             <tr>
-                <td>{{ v.town }}</td>
-                <td class="result_cell">{{ v.candidate1 }}</td>
-                <td class="result_cell">{{ v.candidate2 }}</td>
+                <th>Id</th>
+                <th>Miasto</th>
+                <th>Kandydat1</th>
+                <th>Kandydat2</th>
+                <th></th>
             </tr>
-        {% endfor %}
-    </table>
+            </thead>
+            <tbody>
+            {% for v in data %}
+                <tr>
+                    <td>{{ v.id }}</td>
+                    <td>{{ v.town }}</td>
+                    <td>
+                        <input id="result_modify_town_candidate1_{{ v.id }}"
+                               size=6 type="text"
+                               value="{{ v.candidate1 }}"
+                               class="result_input" readonly>
+                    </td>
+                    <td>
+                        <input id="result_modify_town_candidate2_{{ v.id }}"
+                               size=6
+                               type="text"
+                               value="{{ v.candidate2 }}"
+                               class="result_input" readonly>
+                    </td>
+                    <td>
+                        <input type="button"
+                               value="modyfikuj"
+                               id="result_modify_button_{{ v.id }}">
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
 </section>

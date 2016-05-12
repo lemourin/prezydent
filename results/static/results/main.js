@@ -35,12 +35,30 @@ function create_edit_form(id) {
         },
 
         success : function(json) {
-            $("#edit_root").css("display", "block");
-            $("#edit_data").html(json["page"]);
-            console.log(json.page);
-            $("#edited_voivodeship_name").html("Edytuje " + json["edit_data"]);
+            var edit_root = $("#edit_root");
+            edit_root.css("display", "block");
+            edit_root.html(json["page"]);
             $("#close_button").on("click", function (event) {
-                $("#edit_root").css("display", "none");
+                edit_root.css("display", "none");
+            });
+            $("[id^=result_modify_button_]").on("click", function (event) {
+                var town_id = this.id.replace("result_modify_button_", "");
+                var value = this.value;
+                var c1 = $("#result_modify_town_candidate1_" + town_id);
+                var c2 = $("#result_modify_town_candidate2_" + town_id);
+                c1.attr("readonly", value != "modyfikuj");
+                c2.attr("readonly", value != "modyfikuj");
+                if (value == "modyfikuj") {
+                    this.value = "zatwierdz";
+                    c1.css("background-color", "red");
+                    c2.css("background-color", "red");
+                } else {
+                    this.value = "modyfikuj";
+                    c1.css("background-color", "white");
+                    c2.css("background-color", "white");
+                }
+
+
             });
         },
 

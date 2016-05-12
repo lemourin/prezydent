@@ -8,7 +8,7 @@ from django.template import Context, Template
 
 from .models import CityData, VoteData, VoteResult, CandidateData, AccountData
 
-import json, string
+import json
 
 infinity = 1000000000
 
@@ -284,7 +284,7 @@ def edit_form(request):
 
     if filter_request.startswith("result_by_voivodeship"):
         voivodeship = str(filter_request.replace("result_by_voivodeship_", ""))
-        response["edit_data"] = voivodeship
+        context["edit_data"] = voivodeship
 
         data = {}
         for v in vote_candidate1.select_related("vote_data__town__voivodeship__name",
@@ -305,9 +305,11 @@ def edit_form(request):
         lst = []
         for key, value in data.items():
             lst.append({
+                "id" : key.id,
                 "town" : key.town_name,
-                "candidate1" : value["candidate1"],
-                "candidate2" : value["candidate2"]})
+                "candidate1": value["candidate1"],
+                "candidate2": value["candidate2"]})
+        lst.sort(key=lambda item: item["town"])
         context["data"] = lst
 
     response["page"] = Template(open("results/templates/results/edit_form.html").read()).\
