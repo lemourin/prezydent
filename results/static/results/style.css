@@ -140,7 +140,7 @@ body {
     display: none;
 }
 
-.result_modify_confirm_text {
+.result_modify_confirm_text, .result_modify_error_description {
     width: 160px;
 }
 

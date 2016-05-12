@@ -7,7 +7,9 @@ from django.db.models import Q
 from django.template import Context, Template
 from django.utils import timezone
 
-from .models import CityData, VoteData, VoteResult, CandidateData, AccountData, HistoryData
+from .models import CityData, VoteData, VoteResult, CandidateData, HistoryData
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
 
 import json, re, datetime
 
@@ -230,6 +232,8 @@ def index(request):
     population_density = "%.0f" % (citizen_count / area)
 
     context = {
+        "user_authenticated": request.user.is_authenticated(),
+        "user_name": request.user.username,
         "candidate1": candidate1,
         "candidate2": candidate2,
         "result_by_voivodeship": result_by_voivodeship,
@@ -257,21 +261,27 @@ def index(request):
 
 
 def login_form(request):
-    login = request.POST["username"]
+    username = request.POST["username"]
     password = request.POST["password"]
 
+    user = authenticate(username=username, password=password)
+
     response = {}
-    try:
-        account = AccountData.objects.get(username=login)
-        if password != account.password:
-            response["error"] = "Invalid password."
+    if user is not None:
+        if not user.is_active:
+            response["error"] = "User inactive."
         else:
-            response["ok"] = "Logged in as " + login + "."
-    except AccountData.DoesNotExist:
-        response["error"] = "Login not found"
+            response["ok"] = "Logged in as " + username + "."
+            login(request, user)
+    else:
+        response["error"] = "Authentication failed."
 
     return HttpResponse(json.dumps(response),
                         content_type="application/json")
+
+def logout_form(request):
+    logout(request)
+    return HttpResponse("")
 
 
 def modify_entry(request):
@@ -296,7 +306,7 @@ def modify_entry(request):
         vote_result_candidate1.save()
         vote_result_candidate2.save()
 
-        account = AccountData.objects.all()[0]
+        account = request.user
         m1 = None
         try:
             m1 = HistoryData.objects.get(vote_result=vote_result_candidate1)
@@ -344,6 +354,7 @@ def edit_form(request):
 
     context["candidate1"] = candidate1.last_name
     context["candidate2"] = candidate2.last_name
+    context["user_authenticated"] = request.user.is_authenticated()
 
     if filter_request.startswith("result_by_voivodeship"):
         voivodeship = str(filter_request.replace("result_by_voivodeship_", ""))

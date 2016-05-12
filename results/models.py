@@ -1,17 +1,9 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
 
 
 # Create your models here.
-
-class AccountData(models.Model):
-    username =  models.CharField(max_length=20, db_index=True, unique=True)
-    password = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.username
-
-
 class VoivodeshipData(models.Model):
     name = models.CharField(max_length=200, unique=True)
 
@@ -92,7 +84,9 @@ class VoteResult(models.Model):
             if v != self:
                 valid_vote_count += v.vote_count
         if not (valid_vote_count + self.vote_count <= self.vote_data.vote_count):
-            raise ValidationError("Too many votes for a candidate")
+            raise ValidationError("Too many votes for a candidate: "
+                                  "vote_count for the city equals to " +
+                                  str(self.vote_data.vote_count))
 
     def __str__(self):
         return self.vote_data.town.town_name + " " + self.candidate.last_name + " " + str(self.vote_count)
@@ -100,7 +94,7 @@ class VoteResult(models.Model):
 
 class HistoryData(models.Model):
     vote_result = models.OneToOneField(VoteResult, on_delete=models.CASCADE)
-    author = models.ForeignKey(AccountData, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateTimeField()
 
     def __str__(self):

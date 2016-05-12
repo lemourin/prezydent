@@ -13,16 +13,26 @@ function create_login_form() {
         },
 
         success : function(json) {
-            console.log(json);
             if ("error" in json)
                 login_form.html(json["error"]);
             else if ("ok" in json) {
                 login_form.html(json["ok"]);
             }
-            //login_form.css("display", "none");
+            location.reload()
         },
 
         error : function(xhr, errmsg, err) {
+        }
+    });
+}
+
+function create_logout_form() {
+    var logut_form = $("#logout_form");
+    $.ajax({
+        url : "/logout_form",
+        type : "POST",
+        success : function(json) {
+            location.reload()
         }
     });
 }
@@ -125,6 +135,10 @@ $(document).ready(function() {
     $("#login_form").on('submit', function(event) {
         event.preventDefault();
         create_login_form();
+    });
+    $("#logout_form").on('submit', function(event) {
+        event.preventDefault();
+        create_logout_form();
     });
     $("[id^=result_by_]").on("click", function(event) {
         event.preventDefault();
