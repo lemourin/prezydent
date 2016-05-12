@@ -96,3 +96,12 @@ class VoteResult(models.Model):
 
     def __str__(self):
         return self.vote_data.town.town_name + " " + self.candidate.last_name + " " + str(self.vote_count)
+
+
+class HistoryData(models.Model):
+    vote_result = models.ForeignKey(VoteResult, on_delete=models.CASCADE, blank=True)
+    author = models.ForeignKey(AccountData, on_delete=models.CASCADE, null=True, blank=True)
+    date = models.DateTimeField()
+
+    def __str__(self):
+        return str(self.vote_result)

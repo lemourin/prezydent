@@ -50,7 +50,7 @@ function create_edit_form(id) {
                 c1.attr("readonly", value != "modyfikuj");
                 c2.attr("readonly", value != "modyfikuj");
                 if (value == "modyfikuj") {
-                    this.value = "zatwierdz";
+                    this.value = "zatwierdź";
                     c1.css("background-color", "red");
                     c2.css("background-color", "red");
                 } else {
@@ -59,6 +59,17 @@ function create_edit_form(id) {
                     c2.css("background-color", "white");
                     this.style.display = "none";
                     $("#result_modify_confirm_" + town_id).css("display", "inline");
+                    $.ajax({
+                        url : "/edit_history",
+                        type : "POST",
+                        data : {
+                            "town_id" : town_id
+                        },
+                        success : function(json) {
+                            $("#result_modify_confirm_last_edit_author_" + town_id).html(json["last_edit_author"]);
+                            $("#result_modify_confirm_last_edit_time_" + town_id).html(json["last_edit_time"]);
+                        }
+                    });
                 }
             });
             $("[id^=result_modify_error_button_]").on("click", function(event) {

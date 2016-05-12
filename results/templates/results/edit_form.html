@@ -35,12 +35,16 @@
                                id="result_modify_button_{{ v.id }}">
                         <div class="result_modify_confirm"
                              id="result_modify_confirm_{{ v.id }}">
-                            <table>
+                            <table class="result_modify_confirm_text">
                                 <tr>
                                     <td colspan="2">
-                                        wyniki zostały zmodyfikowane przez {{ v.last_edit_user }}
-                                        o godzinie {{ v.last_edit_time }}, czy chcesz nadpisać?
-                                    <td>
+                                        wyniki zostały zmodyfikowane przez
+                                        <div class="inline_container"
+                                             id="result_modify_confirm_last_edit_author_{{ v.id }}"></div>,
+                                        <div class="inline_container"
+                                             id="result_modify_confirm_last_edit_time_{{ v.id }}"></div>,
+                                        czy chcesz nadpisać?
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="center_cell">
@@ -53,7 +57,7 @@
                                                value="Nie"
                                                id="result_modify_confirm_button_{{ v.id }}">
                                     </td>
-                                <tr>
+                                </tr>
                             </table>
                         </div>
                         <div class="result_modify_error" id="result_modify_error_{{ v.id }}">

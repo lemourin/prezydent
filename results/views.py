@@ -5,11 +5,11 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.db.models import Q
 from django.template import Context, Template
-from django.core.exceptions import ValidationError
+from django.utils import timezone
 
-from .models import CityData, VoteData, VoteResult, CandidateData, AccountData
+from .models import CityData, VoteData, VoteResult, CandidateData, AccountData, HistoryData
 
-import json
+import json, re, datetime
 
 infinity = 1000000000
 
@@ -295,8 +295,31 @@ def modify_entry(request):
         vote_result_candidate2.clean()
         vote_result_candidate1.save()
         vote_result_candidate2.save()
+
+        account = AccountData.objects.all()[0]
+        m1 = HistoryData(vote_result=vote_result_candidate1, author=account, date=timezone.now())
+        m2 = HistoryData(vote_result=vote_result_candidate2, author=account, date=timezone.now())
+        m1.clean()
+        m2.clean()
+        m1.save()
+        m2.save()
     except Exception as err:
         response["error"] = "Niepoprawne dane: " + str(err)
+
+    return HttpResponse(json.dumps(response), content_type="application/json")
+
+
+def edit_history(request):
+    town_id = request.POST["town_id"]
+    response = {}
+    author = "admin"
+    date = datetime.datetime.min
+    for v in HistoryData.objects.filter(vote_result__vote_data__town__id=town_id):
+        date = v.date
+        author = v.author.username
+
+    response["last_edit_author"] = author
+    response["last_edit_time"] = str(date)
 
     return HttpResponse(json.dumps(response), content_type="application/json")
 
@@ -305,8 +328,6 @@ def edit_form(request):
     filter_request = str(request.POST["filter"])
     candidate1 = CandidateData.objects.all()[0]
     candidate2 = CandidateData.objects.all()[1]
-    vote_candidate1 = VoteResult.objects.all().filter(candidate=candidate1)
-    vote_candidate2 = VoteResult.objects.all().filter(candidate=candidate2)
     context = {}
     response = {}
 
@@ -318,21 +339,14 @@ def edit_form(request):
         context["edit_data"] = voivodeship
 
         data = {}
-        for v in vote_candidate1.select_related("vote_data__town__voivodeship__name",
-                                                "vote_data__town__town_name",
-                                                "vote_data__town").\
+        for v in VoteResult.objects.select_related("vote_data__town__voivodeship__name",
+                                                   "vote_data__town__town_name",
+                                                   "vote_data__town",
+                                                   "candidate__id").\
                 filter(vote_data__town__voivodeship__name=voivodeship):
             if v.vote_data.town not in data:
                 data[v.vote_data.town] = {}
-            data[v.vote_data.town]["candidate1"] = v.vote_count
-
-        for v in vote_candidate2.select_related("vote_data__town__voivodeship__name",
-                                                "vote_data__town__town_name",
-                                                "vote_data__town"). \
-                filter(vote_data__town__voivodeship__name=voivodeship):
-            if v.vote_data.town not in data:
-                data[v.vote_data.town] = {}
-            data[v.vote_data.town]["candidate2"] = v.vote_count
+            data[v.vote_data.town]["candidate" + str(v.candidate.id)] = v.vote_count
 
         lst = []
         for key, value in data.items():
@@ -344,11 +358,84 @@ def edit_form(request):
         lst.sort(key=lambda item: item["town"])
         context["data"] = lst
     elif filter_request.startswith("result_by_town_type"):
-        town_type = filter_request.replace("result_by_town_type_", "")
-        context["edit_data"] = "typ gminy " + town_type
+        town_type_str = filter_request.replace("result_by_town_type_", "")
+        context["edit_data"] = "typ gminy " + town_type_str
+        town_type = ""
+        for type in CityData.TOWN_TYPE_CHOICES:
+            if type[1] == town_type_str:
+                town_type = type[0]
+        data = {}
+        for v in VoteResult.objects.select_related("vote_data__town__town_type",
+                                                   "vote_data__town__town_name",
+                                                   "vote_data__town",
+                                                   "candidate__id").\
+                filter(vote_data__town__town_type=town_type):
+            if v.vote_data.town not in data:
+                data[v.vote_data.town] = {}
+            data[v.vote_data.town]["candidate" + str(v.candidate.id)] = v.vote_count
+
+        lst = []
+        for key, value in data.items():
+            lst.append({
+                "id": key.id,
+                "town": key.town_name,
+                "candidate1": value["candidate1"],
+                "candidate2": value["candidate2"]})
+        lst.sort(key=lambda item: item["town"])
+        context["data"] = lst
+    elif filter_request.startswith("result_by_population_statki i zagranica"):
+        data = {}
+        context["edit_data"] = "statki i zagranica"
+        for v in VoteResult.objects.select_related("vote_data__town__town_type",
+                                                   "vote_data__town__town_name",
+                                                   "vote_data__town",
+                                                   "candidate__id"). \
+                filter(Q(vote_data__town__town_type=CityData.BOAT) | Q(vote_data__town__town_type=CityData.ABROAD)):
+            if v.vote_data.town not in data:
+                data[v.vote_data.town] = {}
+            data[v.vote_data.town]["candidate" + str(v.candidate.id)] = v.vote_count
+        lst = []
+        for key, value in data.items():
+            lst.append({
+                "id": key.id,
+                "town": key.town_name,
+                "candidate1": value["candidate1"],
+                "candidate2": value["candidate2"]})
+        lst.sort(key=lambda item: item["town"])
+        context["data"] = lst
     elif filter_request.startswith("result_by_population"):
         population_str = filter_request.replace("result_by_population_", "")
         context["edit_data"] = "populacja " + population_str
+
+        a = 0
+        b = infinity
+        split_data = re.split("\W+", population_str)
+        for i in range(len(split_data)):
+            if split_data[i] == "od":
+                a = int(split_data[i + 1])
+            elif split_data[i] == "do":
+                b = int(split_data[i + 1])
+        data = {}
+        for v in VoteResult.objects.select_related("vote_data__town__citizen_count",
+                                                   "vote_data__town__town_type",
+                                                   "vote_data__town__town_name",
+                                                   "vote_data__town",
+                                                   "candidate__id").\
+                filter(vote_data__town__citizen_count__gte=a).\
+                filter(vote_data__town__citizen_count__lt=b).\
+                filter(Q(vote_data__town__town_type=CityData.TOWN) | Q(vote_data__town__town_type=CityData.VILLAGE)):
+            if v.vote_data.town not in data:
+                data[v.vote_data.town] = {}
+            data[v.vote_data.town]["candidate" + str(v.candidate.id)] = v.vote_count
+        lst = []
+        for key, value in data.items():
+            lst.append({
+                "id": key.id,
+                "town": key.town_name,
+                "candidate1": value["candidate1"],
+                "candidate2": value["candidate2"]})
+        lst.sort(key=lambda item: item["town"])
+        context["data"] = lst
 
     response["page"] = Template(open("results/templates/results/edit_form.html").read()).\
         render(Context(context))
