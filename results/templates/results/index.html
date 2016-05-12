@@ -105,9 +105,9 @@
                 <section class="login_form">
                     <form method="POST" id="login_form">
                         {% csrf_token %}
-                        Login: <input size=10 type="text" id="username" /><br>
-                        Hasło: <input size=10 type="password" id="password" /><br>
-                        <input type="submit" value="Zaloguj" />
+                        Login: <input size=10 type="text" id="username"><br>
+                        Hasło: <input size=10 type="password" id="password"><br>
+                        <input type="submit" value="Zaloguj">
                     </form>
                 </section>
                 <section class="see_also">
@@ -269,7 +269,7 @@
                 {% for what, vote in results_by_town_type %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
-                        <td>{{ what }}</td>
+                        <td id="result_by_town_type_{{ what }}">{{ what }}</td>
                         <td class="result_cell">{{ vote.vote_count }}</td>
                         <td class="result_cell">{{ vote.vote_candidate1 }}</td>
                         <td class="result_cell">{{ vote.vote_candidate1_percentage }}</td>
@@ -293,7 +293,7 @@
                     {% for how, vote in results_by_population %}
                         <tr>
                             <td>{{ forloop.counter }}</td>
-                            <td>{{ how }}</td>
+                            <td id="result_by_population_{{ how }}">{{ how }}</td>
                             <td class="result_cell">{{ vote.vote_count }}</td>
                             <td class="result_cell">{{ vote.vote_candidate1 }}</td>
                             <td class="result_cell">{{ vote.vote_candidate1_percentage }}</td>
@@ -316,8 +316,6 @@
         Copyright
     </footer>
 </section>
-<section class="edit_root" id="edit_root">
-
-</section>
+<section class="edit_root" id="edit_root"></section>
 </body>
 </html>

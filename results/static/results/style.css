@@ -132,6 +132,18 @@ body {
     font-size: 150%;
 }
 
+.result_modify_confirm {
+    display: none;
+}
+
+.center_cell {
+    text-align: center;
+}
+
+.result_modify_error {
+    display: none;
+}
+
 footer {
 }
 

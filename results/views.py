@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.db.models import Q
 from django.template import Context, Template
+from django.core.exceptions import ValidationError
 
 from .models import CityData, VoteData, VoteResult, CandidateData, AccountData
 
@@ -273,6 +274,33 @@ def login_form(request):
                         content_type="application/json")
 
 
+def modify_entry(request):
+    response = {}
+    town_id = request.POST["town_id"]
+    candidate1 = CandidateData.objects.all()[0]
+    candidate2 = CandidateData.objects.all()[1]
+
+    vote_result_candidate1 = VoteResult.objects.get(Q(vote_data__town__id=town_id) &
+                                                    Q(candidate=candidate1))
+    vote_result_candidate2 = VoteResult.objects.get(Q(vote_data__town__id=town_id) &
+                                                    Q(candidate=candidate2))
+
+    try:
+        candidate1_result = int(request.POST["candidate1"])
+        candidate2_result = int(request.POST["candidate2"])
+        vote_result_candidate1.vote_count = candidate1_result
+        vote_result_candidate2.vote_count = candidate2_result
+
+        vote_result_candidate1.clean()
+        vote_result_candidate2.clean()
+        vote_result_candidate1.save()
+        vote_result_candidate2.save()
+    except Exception as err:
+        response["error"] = "Niepoprawne dane: " + str(err)
+
+    return HttpResponse(json.dumps(response), content_type="application/json")
+
+
 def edit_form(request):
     filter_request = str(request.POST["filter"])
     candidate1 = CandidateData.objects.all()[0]
@@ -281,6 +309,9 @@ def edit_form(request):
     vote_candidate2 = VoteResult.objects.all().filter(candidate=candidate2)
     context = {}
     response = {}
+
+    context["candidate1"] = candidate1.last_name
+    context["candidate2"] = candidate2.last_name
 
     if filter_request.startswith("result_by_voivodeship"):
         voivodeship = str(filter_request.replace("result_by_voivodeship_", ""))
@@ -302,6 +333,7 @@ def edit_form(request):
             if v.vote_data.town not in data:
                 data[v.vote_data.town] = {}
             data[v.vote_data.town]["candidate2"] = v.vote_count
+
         lst = []
         for key, value in data.items():
             lst.append({
@@ -311,6 +343,12 @@ def edit_form(request):
                 "candidate2": value["candidate2"]})
         lst.sort(key=lambda item: item["town"])
         context["data"] = lst
+    elif filter_request.startswith("result_by_town_type"):
+        town_type = filter_request.replace("result_by_town_type_", "")
+        context["edit_data"] = "typ gminy " + town_type
+    elif filter_request.startswith("result_by_population"):
+        population_str = filter_request.replace("result_by_population_", "")
+        context["edit_data"] = "populacja " + population_str
 
     response["page"] = Template(open("results/templates/results/edit_form.html").read()).\
         render(Context(context))

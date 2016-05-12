@@ -5,27 +5,24 @@
     </section>
     <section class="edit_data">
         <table>
-            <thead>
             <tr>
                 <th>Id</th>
                 <th>Miasto</th>
-                <th>Kandydat1</th>
-                <th>Kandydat2</th>
+                <th>{{ candidate1 }}</th>
+                <th>{{ candidate2 }}</th>
                 <th></th>
             </tr>
-            </thead>
-            <tbody>
             {% for v in data %}
                 <tr>
                     <td>{{ v.id }}</td>
                     <td>{{ v.town }}</td>
-                    <td>
+                    <td class="center_cell">
                         <input id="result_modify_town_candidate1_{{ v.id }}"
                                size=6 type="text"
                                value="{{ v.candidate1 }}"
                                class="result_input" readonly>
                     </td>
-                    <td>
+                    <td class="center_cell">
                         <input id="result_modify_town_candidate2_{{ v.id }}"
                                size=6
                                type="text"
@@ -36,10 +33,42 @@
                         <input type="button"
                                value="modyfikuj"
                                id="result_modify_button_{{ v.id }}">
+                        <div class="result_modify_confirm"
+                             id="result_modify_confirm_{{ v.id }}">
+                            <table>
+                                <tr>
+                                    <td colspan="2">
+                                        wyniki zostały zmodyfikowane przez {{ v.last_edit_user }}
+                                        o godzinie {{ v.last_edit_time }}, czy chcesz nadpisać?
+                                    <td>
+                                </tr>
+                                <tr>
+                                    <td class="center_cell">
+                                        <input type="button"
+                                               value="Tak"
+                                               id="result_modify_confirm_button_{{ v.id }}">
+                                    </td>
+                                    <td class="center_cell">
+                                        <input type="button"
+                                               value="Nie"
+                                               id="result_modify_confirm_button_{{ v.id }}">
+                                    </td>
+                                <tr>
+                            </table>
+                        </div>
+                        <div class="result_modify_error" id="result_modify_error_{{ v.id }}">
+                            <table>
+                                <tr>
+                                    <td><div id="result_modify_error_description_{{ v.id }}"></div></td>
+                                </tr>
+                                <tr class="center_cell">
+                                    <td><input type="button" value="Ok" id="result_modify_error_button_{{ v.id }}"></td>
+                                </tr>
+                            </table>
+                        </div>
                     </td>
                 </tr>
             {% endfor %}
-            </tbody>
         </table>
     </section>
 </section>
