@@ -99,8 +99,8 @@ class VoteResult(models.Model):
 
 
 class HistoryData(models.Model):
-    vote_result = models.ForeignKey(VoteResult, on_delete=models.CASCADE, blank=True)
-    author = models.ForeignKey(AccountData, on_delete=models.CASCADE, null=True, blank=True)
+    vote_result = models.OneToOneField(VoteResult, on_delete=models.CASCADE)
+    author = models.ForeignKey(AccountData, on_delete=models.CASCADE)
     date = models.DateTimeField()
 
     def __str__(self):

@@ -297,8 +297,19 @@ def modify_entry(request):
         vote_result_candidate2.save()
 
         account = AccountData.objects.all()[0]
-        m1 = HistoryData(vote_result=vote_result_candidate1, author=account, date=timezone.now())
-        m2 = HistoryData(vote_result=vote_result_candidate2, author=account, date=timezone.now())
+        m1 = None
+        try:
+            m1 = HistoryData.objects.get(vote_result=vote_result_candidate1)
+        except:
+            m1 = HistoryData(vote_result=vote_result_candidate1)
+        m2 = None
+        try:
+            m2 = HistoryData.objects.get(vote_result=vote_result_candidate2)
+        except:
+            m2 = HistoryData(vote_result=vote_result_candidate2)
+
+        m1.author = m2.author = account
+        m1.date = m2.date = timezone.now()
         m1.clean()
         m2.clean()
         m1.save()
