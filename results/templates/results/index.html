@@ -108,7 +108,11 @@
                             <table>
                                 <tr><td>Zalogowano jako {{ user_name }}</td></tr>
                                 {% csrf_token %}
-                                <tr><td colspan="2" class="center_cell"><input type="submit" value="Wyloguj"></td></tr>
+                                <tr>
+                                    <td colspan="2" class="center_cell">
+                                        <input type="submit" value="Wyloguj" id="logout_button">
+                                    </td>
+                                </tr>
                             </table>
                         </form>
                     {% else %}
@@ -125,7 +129,7 @@
                                 </tr>
                                 <tr>
                                     <td colspan="2" class="center_cell">
-                                        <input type="submit" value="Zaloguj">
+                                        <input type="submit" value="Zaloguj" id="login_button">
                                     <td>
                                 </tr>
                             </table>

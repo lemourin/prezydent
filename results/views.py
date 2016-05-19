@@ -8,7 +8,6 @@ from django.template import Context, Template
 from django.utils import timezone
 
 from .models import CityData, VoteData, VoteResult, CandidateData, HistoryData
-from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 
 import json, re, datetime
@@ -61,9 +60,9 @@ def get_boats_and_abroad(vote_candidate1, vote_candidate2):
         t.vote_candidate2 += v.vote_count
     t.vote_count = t.vote_candidate1 + t.vote_candidate2
     t.vote_candidate1_percentage = "%.2f" % (
-        100.0 * t.vote_candidate1 / t.vote_count)
+        100.0 * t.vote_candidate1 / t.vote_count) if t.vote_count != 0 else 0
     t.vote_candidate2_percentage = "%.2f" % (
-        100.0 * t.vote_candidate2 / t.vote_count)
+        100.0 * t.vote_candidate2 / t.vote_count) if t.vote_count != 0 else 0
     return t
 
 
@@ -96,9 +95,9 @@ def get_results_by_population(vote_candidate1, vote_candidate2):
         if t.vote_count == 0:
             continue
         t.vote_candidate1_percentage = "%.2f" % (
-            100.0 * t.vote_candidate1 / t.vote_count)
+            100.0 * t.vote_candidate1 / t.vote_count) if t.vote_count != 0 else 0
         t.vote_candidate2_percentage = "%.2f" % (
-            100.0 * t.vote_candidate2 / t.vote_count)
+            100.0 * t.vote_candidate2 / t.vote_count) if t.vote_count != 0 else 0
         results_by_population.append((id, t))
     return results_by_population
 
@@ -129,9 +128,9 @@ def get_results_by_voivodeship(vote_candidate1, vote_candidate2):
     for key, value in result_by_voivodeship.items():
         value.vote_count = value.vote_candidate1 + value.vote_candidate2
         value.vote_candidate1_percentage = "%.2f" % (
-            100.0 * value.vote_candidate1 / value.vote_count)
+            100.0 * value.vote_candidate1 / value.vote_count) if value.vote_count != 0 else 0
         value.vote_candidate2_percentage = "%.2f" % (
-            100.0 * value.vote_candidate2 / value.vote_count)
+            100.0 * value.vote_candidate2 / value.vote_count) if value.vote_count != 0 else 0
     return result_by_voivodeship.items(), vote_result_candidate1, vote_result_candidate2
 
 
@@ -188,15 +187,15 @@ def get_results_by_town_type(vote_candidate1, vote_candidate2):
         if r.vote_count == 0:
             continue
         r.vote_candidate1_percentage = "%.2f" % (
-            100.0 * r.vote_candidate1 / r.vote_count)
+            100.0 * r.vote_candidate1 / r.vote_count) if r.vote_count != 0 else 0
         r.vote_candidate2_percentage = "%.2f" % (
-            100.0 * r.vote_candidate2 / r.vote_count)
+            100.0 * r.vote_candidate2 / r.vote_count) if r.vote_count != 0 else 0
 
         results_by_town_type[t[1]] = r
     return results_by_town_type.items()
 
 
-def index(request):
+def index_context(request):
     candidate1 = CandidateData.objects.all()[0]
     candidate2 = CandidateData.objects.all()[1]
     vote_candidate1 = VoteResult.objects.all().filter(candidate=candidate1)
@@ -231,6 +230,9 @@ def index(request):
     area = 312685
     population_density = "%.0f" % (citizen_count / area)
 
+    result_candidate1_percentage = "%.2f" % (100.0 * vote_result_candidate1 / vote_count) if vote_count != 0 else 0
+    result_candidate2_percentage = "%.2f" % (100.0 * vote_result_candidate2 / vote_count) if vote_count != 0 else 0
+
     context = {
         "user_authenticated": request.user.is_authenticated(),
         "user_name": request.user.username,
@@ -240,8 +242,8 @@ def index(request):
         "vote_count": vote_count,
         "result_candidate1": vote_result_candidate1,
         "result_candidate2": vote_result_candidate2,
-        "result_candidate1_percentage": "%.2f" % (100.0 * vote_result_candidate1 / vote_count),
-        "result_candidate2_percentage": "%.2f" % (100.0 * vote_result_candidate2 / vote_count),
+        "result_candidate1_percentage": result_candidate1_percentage,
+        "result_candidate2_percentage": result_candidate2_percentage,
         "colors": voivodeship_colors,
         "candidate1_percentages": candidate1_percentages,
         "candidate2_percentages": candidate2_percentages,
@@ -257,7 +259,11 @@ def index(request):
         "results_by_population": get_results_by_population(vote_candidate1, vote_candidate2)
     }
 
-    return HttpResponse(render(request, "results/index.html", context))
+    return context
+
+
+def index(request):
+    return HttpResponse(render(request, "results/index.html", index_context(request)))
 
 
 def login_form(request):
@@ -278,6 +284,7 @@ def login_form(request):
 
     return HttpResponse(json.dumps(response),
                         content_type="application/json")
+
 
 def logout_form(request):
     logout(request)
