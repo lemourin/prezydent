@@ -217,11 +217,11 @@ def index_context(request):
         authorized_citizen_count += v.authorized_citizen_count
 
     vote_result = {}
-    vote_result[candidate1] = vote_result[candidate2] = 0
-    for v in VoteResult.objects.all():
-        vote_result[v.candidate] += v.vote_count
-    vote_result_candidate1 = vote_result[candidate1]
-    vote_result_candidate2 = vote_result[candidate2]
+    vote_result[candidate1.id] = vote_result[candidate2.id] = 0
+    for v in VoteResult.objects.all().select_related("candidate__id"):
+        vote_result[v.candidate.id] += v.vote_count
+    vote_result_candidate1 = vote_result[candidate1.id]
+    vote_result_candidate2 = vote_result[candidate2.id]
     vote_count = vote_result_candidate1 + vote_result_candidate2
 
     citizen_count = 0
