@@ -104,8 +104,6 @@ def get_results_by_population(vote_candidate1, vote_candidate2):
 
 def get_results_by_voivodeship(vote_candidate1, vote_candidate2):
     result_by_voivodeship = {}
-    vote_result_candidate1 = 0
-    vote_result_candidate2 = 0
 
     for v in vote_candidate1.select_related("vote_data__town__voivodeship"):
         voivodeship = v.vote_data.town.voivodeship
@@ -114,7 +112,6 @@ def get_results_by_voivodeship(vote_candidate1, vote_candidate2):
         if voivodeship not in result_by_voivodeship:
             result_by_voivodeship[voivodeship] = Tuple()
         result_by_voivodeship[voivodeship].vote_candidate1 += v.vote_count
-        vote_result_candidate1 += v.vote_count
 
     for v in vote_candidate2.select_related("vote_data__town__voivodeship"):
         voivodeship = v.vote_data.town.voivodeship
@@ -123,7 +120,6 @@ def get_results_by_voivodeship(vote_candidate1, vote_candidate2):
         if voivodeship not in result_by_voivodeship:
             result_by_voivodeship[voivodeship] = Tuple()
         result_by_voivodeship[voivodeship].vote_candidate2 += v.vote_count
-        vote_result_candidate2 += v.vote_count
 
     for key, value in result_by_voivodeship.items():
         value.vote_count = value.vote_candidate1 + value.vote_candidate2
@@ -131,7 +127,7 @@ def get_results_by_voivodeship(vote_candidate1, vote_candidate2):
             100.0 * value.vote_candidate1 / value.vote_count) if value.vote_count != 0 else 0
         value.vote_candidate2_percentage = "%.2f" % (
             100.0 * value.vote_candidate2 / value.vote_count) if value.vote_count != 0 else 0
-    return result_by_voivodeship.items(), vote_result_candidate1, vote_result_candidate2
+    return result_by_voivodeship.items()
 
 
 def get_map_colors(result_by_voivodeship):
@@ -201,16 +197,13 @@ def index_context(request):
     vote_candidate1 = VoteResult.objects.all().filter(candidate=candidate1)
     vote_candidate2 = VoteResult.objects.all().filter(candidate=candidate2)
 
-    result_by_voivodeship, \
-        vote_result_candidate1, \
-        vote_result_candidate2 = get_results_by_voivodeship(vote_candidate1, vote_candidate2)
-    vote_count = vote_result_candidate1 + vote_result_candidate2
+    result_by_voivodeship = get_results_by_voivodeship(vote_candidate1, vote_candidate2)
 
     voivodeship_colors, \
         candidate1_percentages, \
         candidate2_percentages, \
         candidate1_colors, \
-        candidate2_colors =  get_map_colors(result_by_voivodeship)
+        candidate2_colors = get_map_colors(result_by_voivodeship)
 
     results_by_town_type = get_results_by_town_type(
         vote_candidate1, vote_candidate2)
@@ -222,6 +215,14 @@ def index_context(request):
         all_vote_count += v.vote_count
         form_count += v.vote_forms_count
         authorized_citizen_count += v.authorized_citizen_count
+
+    vote_result = {}
+    vote_result[candidate1] = vote_result[candidate2] = 0
+    for v in VoteResult.objects.all():
+        vote_result[v.candidate] += v.vote_count
+    vote_result_candidate1 = vote_result[candidate1]
+    vote_result_candidate2 = vote_result[candidate2]
+    vote_count = vote_result_candidate1 + vote_result_candidate2
 
     citizen_count = 0
     for v in CityData.objects.all():
