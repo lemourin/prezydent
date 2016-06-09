@@ -1,0 +1,214 @@
+body {
+    background: lightgrey;
+    font-family: Tahoma, Verdana, Helvetica, sans-serif;
+}
+
+.page_root {
+    margin: auto;
+    width: 1100px;
+}
+
+.page_header {
+    position: relative;
+    height: 150px;
+    width: 1100px;
+    margin: auto;
+}
+
+.top_header_img {
+    position: absolute;
+    margin: auto;
+    width: 1010px;
+}
+
+.main_header_img {
+    position: absolute;
+    top: 46px;
+    width: 1100px;
+}
+
+.flags_img {
+    position: absolute;
+    left: 1010px;
+    top: 10px;
+}
+
+.content {
+}
+
+.top_content {
+}
+
+.map_root {
+    font-size: 90%;
+    display: inline-block;
+}
+
+.map {
+    padding: 5px;
+}
+
+.legend_colors {
+    height: 10px;
+}
+
+.right_side {
+    display: inline-block;
+    vertical-align: bottom;
+}
+
+.login_form {
+}
+
+.see_also {
+    font-size: 75%;
+    width: 350px;
+}
+
+.see_also_enumeration {
+    list-style-image: url('img/pointerzt.png');
+}
+
+.summary {
+    background: lightyellow;
+    font-size: 110%;
+    border-radius: 5px;
+    padding: 5px;
+    border: 1px solid black;
+}
+
+.progress_candidate {
+    background-color: white;
+    width: 200px;
+    height: 25px;
+    border: 1px solid black;
+}
+
+.progress_detailed {
+    background-color: orange;
+    width: 250px;
+    height: 35px;
+}
+
+.inline_container {
+    display: inline;
+}
+
+.result_text {
+    font-size: 85%;
+}
+
+.results {
+}
+
+.result_summary {
+    color: red;
+    background-color: white;
+}
+
+.results_by_population {
+    margin-top: 50px;
+}
+
+.result_cell {
+    text-align: right;
+}
+
+.result_input {
+    background-color: white;
+}
+
+.edit_root {
+    position: fixed;
+    left: 100px;
+    top: 100px;
+    background: grey;
+    display: none;
+}
+
+.edit_data {
+    overflow-y: auto;
+    height: 500px;
+    background: darkgray;
+}
+
+.edit_header {
+    font-size: 150%;
+}
+
+.result_modify_confirm {
+    display: none;
+}
+
+.result_modify_confirm_text, .result_modify_error_description {
+    width: 160px;
+}
+
+.center_cell {
+    text-align: center;
+}
+
+.result_modify_error {
+    display: none;
+}
+
+footer {
+}
+
+@media screen and (max-width: 680px) {
+    body {
+        margin: auto;
+        font-size: 55%;
+    }
+
+    .progress_detailed {
+        width: 100px;
+    }
+
+    .map_root {
+        display: none;
+    }
+
+    .see_also {
+        display: none;
+    }
+
+    .right_side {
+        display: block;
+        margin: auto;
+        width: 300px;
+    }
+
+    .login_form {
+        margin: auto;
+        width: 150px;
+    }
+
+    .page_root {
+        width: 480px;
+    }
+
+    .page_header {
+        width: 480px;
+        height: 80px;
+    }
+
+    .top_header_img {
+        width: 440px;
+    }
+
+    .main_header_img {
+        top: 20px;
+        width: 480px;
+    }
+
+    .flags_img {
+        display: none;
+    }
+}
+
+@media print {
+    .header, .summary, .map_root, .see_also, .progress_detailed, .top_header_img, .main_header_img, .flags_img {
+        display: none;
+    }
+}
