@@ -1,0 +1,80 @@
+<section>
+    <section class="edit_header">
+        <p>{{ edit_data }}</p>
+        <input type="button" id="close_button" value="Zamknij">
+    </section>
+    <section class="edit_data">
+        <table>
+            <tr>
+                <th>Id</th>
+                <th>Miasto</th>
+                <th>{{ candidate1 }}</th>
+                <th>{{ candidate2 }}</th>
+                <th></th>
+            </tr>
+            {% for v in data %}
+                <tr>
+                    <td>{{ v.id }}</td>
+                    <td>{{ v.town }}</td>
+                    <td class="center_cell">
+                        <input id="result_modify_town_candidate1_{{ v.id }}"
+                               size=6 type="text"
+                               value="{{ v.candidate1 }}"
+                               class="result_input" readonly>
+                    </td>
+                    <td class="center_cell">
+                        <input id="result_modify_town_candidate2_{{ v.id }}"
+                               size=6
+                               type="text"
+                               value="{{ v.candidate2 }}"
+                               class="result_input" readonly>
+                    </td>
+                    <td>
+                        {% if user_authenticated %}
+                            <input type="button"
+                                   value="modyfikuj"
+                                   id="result_modify_button_{{ v.id }}">
+                            <div class="result_modify_confirm"
+                                 id="result_modify_confirm_{{ v.id }}">
+                                <table class="result_modify_confirm_text">
+                                    <tr>
+                                        <td colspan="2">
+                                            wyniki zostały zmodyfikowane przez
+                                            <div class="inline_container"
+                                                 id="result_modify_confirm_last_edit_author_{{ v.id }}"></div>,
+                                            <div class="inline_container"
+                                                 id="result_modify_confirm_last_edit_time_{{ v.id }}"></div>,
+                                            czy chcesz nadpisać?
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="center_cell">
+                                            <input type="button"
+                                                   value="Tak"
+                                                   id="result_modify_confirm_button_{{ v.id }}">
+                                        </td>
+                                        <td class="center_cell">
+                                            <input type="button"
+                                                   value="Nie"
+                                                   id="result_modify_confirm_button_{{ v.id }}">
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <table class="result_modify_error" id="result_modify_error_{{ v.id }}">
+                                <tr>
+                                    <td><div class="result_modify_error_description"
+                                             id="result_modify_error_description_{{ v.id }}"></div></td>
+                                </tr>
+                                <tr class="center_cell">
+                                    <td><input type="button" value="Ok"
+                                               id="result_modify_error_button_{{ v.id }}"></td>
+                                </tr>
+                            </table>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </section>
+</section>
