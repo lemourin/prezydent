@@ -1,10 +1,10 @@
-<form method="POST" id="logout_form">
+<section id="logout_form" ng-app="app" ng-controller="controller">
     <table>
         <tr><td id="logged_user_data"></td></tr>
         <tr>
             <td colspan="2" class="center_cell">
-                <input type="submit" value="Wyloguj" id="logout_button">
+                <input type="submit" value="Wyloguj" id="logout_button" ng-click="send_logout()">
             </td>
         </tr>
     </table>
-</form>
+</section>

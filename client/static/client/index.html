@@ -208,7 +208,8 @@
                     <th>%</th>
                 </tr>
                 <tr ng-repeat="(where, vote) in results_by_voivodeship">
-                    <td id="result_by_voivodeship_{{ where }}">{{ where }}, woj</td>
+                    <td id="result_by_voivodeship_{{ where }}"
+                        ng-click="create_edit_form('result_by_voivodeship_' + where)">{{ where }}, woj</td>
                     <td class="result_cell">{{ vote.vote_count }}</td>
                     <td class="result_cell">{{ vote.vote_candidate1 }}</td>
                     <td class="result_cell">{{ vote.vote_candidate1_percentage }}</td>
@@ -274,7 +275,8 @@
                     <th>liczba</th>
                     <th>%</th>
                 </tr>
-                <tr ng-repeat="(what, vote) in results_by_town_type">
+                <tr ng-repeat="(what, vote) in results_by_town_type"
+                    ng-click="create_edit_form('result_by_town_type_' + what)">
                     <td>{{ $index + 1 }}</td>
                     <td id="result_by_town_type_{{ what }}">{{ what }}</td>
                     <td class="result_cell">{{ vote.vote_count }}</td>
@@ -296,7 +298,8 @@
                         Porównanie wyników głosowania na kandydatów w zależności od liczby mieszkańców gminy
                     </th>
                 </tr>
-                    <tr ng-repeat="(how, vote) in results_by_population">
+                    <tr ng-repeat="(how, vote) in results_by_population"
+                        ng-click="create_edit_form('result_by_population_' + how)">
                         <td>{{ $index + 1 }}</td>
                         <td id="result_by_population_{{ how }}">{{ how }}</td>
                         <td class="result_cell">{{ vote.vote_count }}</td>

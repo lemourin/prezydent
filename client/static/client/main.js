@@ -7,7 +7,43 @@ app.config(['$httpProvider', function($httpProvider) {
     $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
 }]);
 
+
+function send_login(http, scope, localstorage) {
+    var username = $("#username");
+    var password = $("#password");
+    var login_form = $("#login_form");
+    $.ajax({
+        url : "/login_form",
+        type : "POST",
+        data : {
+            username : username.val(),
+            password : password.val()
+        },
+        success : function(json) {
+            if ("error" in json)
+                login_form.html(json["error"]);
+            else if ("ok" in json)
+                login_form.html(json["ok"]);
+            localstorage.clearAll();
+            location.reload();
+        }
+    });
+}
+
+function send_logout(http, scope, localstorage) {
+    var logut_form = $("#logout_form");
+    $.ajax({
+        url : "/logout_form",
+        type : "POST",
+        success : function(json) {
+            localstorage.clearAll();
+            location.reload();
+        }
+    });
+}
+
 app.controller('controller', function ($http, $scope, localStorageService) {
+    $scope.create_edit_form = create_edit_form;
     function set_data(scope, http, json, localstorage) {
         narysuj(json["colors"]);
         scope.citizen_count = json["citizen_count"];
@@ -35,9 +71,17 @@ app.controller('controller', function ($http, $scope, localStorageService) {
         if (json["user_authenticated"])
             $(".login_form").load("logged_in.html", function() {
                 $("#logged_user_data").html("Zalogowano jako " + json["user_name"]);
+                $("#logout_button").on("click", function() {
+                    send_logout(http, scope, localstorage);
+                });
             });
         else
-            $(".login_form").load("logged_out.html");
+            $(".login_form").load("logged_out.html", function() {
+                $("#login_button").on("click", function() {
+                    send_login(http, scope, localstorage);
+                });
+            });
+        create_document(http, scope, localstorage);
         scope.results_by_voivodeship = {};
 
         function aggregate(json) {
@@ -59,14 +103,12 @@ app.controller('controller', function ($http, $scope, localStorageService) {
         json["voivodeships"].forEach(function(name) {
             http.get("/city/list/voivodeship/" + name).then(function(response) {
                 scope.results_by_voivodeship[name] = aggregate(response.data["data"]);
-                create_document(scope, localstorage)
             });
         });
         scope.results_by_town_type = {};
         json["town_types"].forEach(function(name) {
             http.get("/city/list/towntype/" + name).then(function(response) {
                 scope.results_by_town_type[name] = aggregate(response.data["data"]);
-                create_document(scope, localstorage)
             });
         });
 
@@ -98,7 +140,6 @@ app.controller('controller', function ($http, $scope, localStorageService) {
                 var result = aggregate(json);
                 if (result["vote_count"] != 0)
                     scope.results_by_population[id] = result;
-                create_document(scope, localstorage)
             }
         }
         for (var i = 0; i <= population_splits.length; i++) {
@@ -118,40 +159,6 @@ app.controller('controller', function ($http, $scope, localStorageService) {
             set_data($scope, $http, json, localStorageService);
         });
 });
-
-function create_login_form(scope, localstorage) {
-    var username = $("#username");
-    var password = $("#password");
-    var login_form = $("#login_form");
-    $.ajax({
-        url : "/login_form",
-        type : "POST",
-        data : {
-            username : username.val(),
-            password : password.val()
-        },
-        success : function(json) {
-            if ("error" in json)
-                login_form.html(json["error"]);
-            else if ("ok" in json)
-                login_form.html(json["ok"]);
-            localstorage.clearAll();
-            location.reload()
-        }
-    });
-}
-
-function create_logout_form(scope, localstorage) {
-    var logut_form = $("#logout_form");
-    $.ajax({
-        url : "/logout_form",
-        type : "POST",
-        success : function(json) {
-            localstorage.clearAll();
-            location.reload()
-        }
-    });
-}
 
 function create_edit_form(id) {
     $.ajax({
@@ -243,7 +250,7 @@ function create_edit_form(id) {
     });
 }
 
-function create_document(scope, localstorage) {
+function create_document(http, scope, localstorage) {
     $("#login_form").on('submit', function(event) {
         event.preventDefault();
         create_login_form(scope, localstorage);
@@ -251,9 +258,5 @@ function create_document(scope, localstorage) {
     $("#logout_form").on('submit', function(event) {
         event.preventDefault();
         create_logout_form(scope, localstorage);
-    });
-    $("[id^=result_by_]").on("click", function(event) {
-        event.preventDefault();
-        create_edit_form(this.id);
     });
 }
