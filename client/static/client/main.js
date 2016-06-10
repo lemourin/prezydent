@@ -7,7 +7,6 @@ app.config(['$httpProvider', function($httpProvider) {
     $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
 }]);
 
-
 function send_login(http, scope, localstorage) {
     var username = $("#username");
     var password = $("#password");
@@ -22,9 +21,10 @@ function send_login(http, scope, localstorage) {
         success : function(json) {
             if ("error" in json)
                 login_form.html(json["error"]);
-            else if ("ok" in json)
+            else if ("ok" in json) {
                 login_form.html(json["ok"]);
-            localstorage.clearAll();
+                scope.user_authenticated = true;
+            }
             location.reload();
         }
     });
@@ -36,7 +36,7 @@ function send_logout(http, scope, localstorage) {
         url : "/logout_form",
         type : "POST",
         success : function(json) {
-            localstorage.clearAll();
+            scope.user_authenticated = false;
             location.reload();
         }
     });
@@ -44,6 +44,8 @@ function send_logout(http, scope, localstorage) {
 
 app.controller('controller', function ($http, $scope, localStorageService) {
     $scope.create_edit_form = create_edit_form;
+    $scope.send_login = function() { return send_login($http, $scope, localStorageService)};
+    $scope.send_logout = function() { return send_logout($http, $scope, localStorageService)};
     function set_data(scope, http, json, localstorage) {
         narysuj(json["colors"]);
         scope.citizen_count = json["citizen_count"];
@@ -68,21 +70,8 @@ app.controller('controller', function ($http, $scope, localStorageService) {
         scope.result_candidate2 = json["result_candidate2"];
         scope.result_candidate2_percentage = json["result_candidate2_percentage"];
 
-        if (json["user_authenticated"])
-            $(".login_form").load("logged_in.html", function() {
-                $("#logged_user_data").html("Zalogowano jako " + json["user_name"]);
-                $("#logout_button").on("click", function() {
-                    send_logout(http, scope, localstorage);
-                });
-            });
-        else
-            $(".login_form").load("logged_out.html", function() {
-                $("#login_button").on("click", function() {
-                    send_login(http, scope, localstorage);
-                });
-            });
-        create_document(http, scope, localstorage);
-        scope.results_by_voivodeship = {};
+        scope.user_authenticated = json["user_authenticated"];
+        scope.user_name = json["user_name"];
 
         function aggregate(json) {
             var candidate1 = 0, candidate2 = 0;
@@ -100,15 +89,20 @@ app.controller('controller', function ($http, $scope, localStorageService) {
             }
         }
 
+        scope.results_by_voivodeship = {};
         json["voivodeships"].forEach(function(name) {
+            scope.results_by_voivodeship[name] = localstorage.get('results_by_voivodeship_' + name);
             http.get("/city/list/voivodeship/" + name).then(function(response) {
                 scope.results_by_voivodeship[name] = aggregate(response.data["data"]);
+                localstorage.set('results_by_voivodeship_' + name, aggregate(response.data["data"]));
             });
         });
         scope.results_by_town_type = {};
         json["town_types"].forEach(function(name) {
+            scope.results_by_town_type[name] = localstorage.get('results_by_town_type_' + name);
             http.get("/city/list/towntype/" + name).then(function(response) {
                 scope.results_by_town_type[name] = aggregate(response.data["data"]);
+                localstorage.set('results_by_town_type_' + name, aggregate(response.data["data"]));
             });
         });
 
@@ -124,40 +118,51 @@ app.controller('controller', function ($http, $scope, localStorageService) {
             100000
         ];
         scope.results_by_population = {};
+        scope.results_by_population["statki i zagranica"] = localstorage.get('statki_i_zagranica');
         http.get("/city/list/boats_and_abroad").then(function(response) {
             var json = response.data["data"];
             scope.results_by_population["statki i zagranica"] = aggregate(json);
+            localstorage.set('statki_i_zagranica', aggregate(json));
         });
 
-        function create_func(i, a, b) {
+        function get_id(i, a, b) {
+            var id = "";
+            if (i != 0)
+                id += "od " + a + (i != population_splits.length ? " " : "");
+            if (i != population_splits.length)
+                id += "do " + b;
+            return id;
+        }
+
+        function create_func(i, a, b, localstorage) {
             return function(response) {
                 var json = response.data["data"];
-                var id = "";
-                if (i != 0)
-                    id += "od " + a + (i != population_splits.length ? " " : "");
-                if (i != population_splits.length)
-                    id += "do " + b;
+
                 var result = aggregate(json);
-                if (result["vote_count"] != 0)
-                    scope.results_by_population[id] = result;
+                if (result["vote_count"] != 0) {
+                    scope.results_by_population[get_id(i, a, b)] = result;
+                    localstorage.set('results_by_population_' + get_id(i, a, b), result);
+                }
             }
         }
         for (var i = 0; i <= population_splits.length; i++) {
             var a = i == 0 ? 0 : population_splits[i - 1];
             var b = i == population_splits.length ? 1e9 : population_splits[i];
 
-            http.get("/city/list/population/" + a + "-" + b).then(create_func(i, a, b));
+            var t = localstorage.get('results_by_population_' + get_id(i, a, b));
+            if (t != null && t["vote_count"] != 0)
+                scope.results_by_population[get_id(i, a, b)] = t;
+            http.get("/city/list/population/" + a + "-" + b).then(create_func(i, a, b, localstorage));
         }
         localstorage.set("data", json);
     }
 
-    if (localStorageService.get("data") != null) {
+    if (localStorageService.get("data") != null)
         set_data($scope, $http, localStorageService.get("data"), localStorageService);
-    } else
-        $http.get("/summary").then(function(response) {
-            var json = response.data;
-            set_data($scope, $http, json, localStorageService);
-        });
+    $http.get("/summary").then(function(response) {
+        var json = response.data;
+        set_data($scope, $http, json, localStorageService);
+    });
 });
 
 function create_edit_form(id) {

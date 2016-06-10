@@ -87,38 +87,33 @@
             </section>
             <section class="right_side">
                 <section class="login_form">
-                    {% if user_authenticated %}
-                        <form method="POST" id="logout_form">
-                            <table>
-                                <tr><td>Zalogowano jako {{ user_name }}</td></tr>
-                                {% csrf_token %}
-                                <tr>
-                                    <td colspan="2" class="center_cell">
-                                        <input type="submit" value="Wyloguj" id="logout_button">
-                                    </td>
-                                </tr>
-                            </table>
-                        </form>
-                    {% else %}
-                        <form method="POST" id="login_form">
-                            {% csrf_token %}
-                            <table>
-                                <tr>
-                                    <td>Login: </td>
-                                    <td><input size=10 type="text" id="username"></td>
-                                </tr>
-                                <tr>
-                                    <td>Hasło: </td>
-                                    <td><input size=10 type="password" id="password"></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="2" class="center_cell">
-                                        <input type="submit" value="Zaloguj" id="login_button">
-                                    <td>
-                                </tr>
-                            </table>
-                        </form>
-                    {% endif %}
+                    <form method="POST" id="logout_form" ng-if="user_authenticated">
+                        <table>
+                            <tr><td>Zalogowano jako {{ user_name }}</td></tr>
+                            <tr>
+                                <td colspan="2" class="center_cell">
+                                    <input type="submit" value="Wyloguj" id="logout_button" ng-click="send_logout()">
+                                </td>
+                            </tr>
+                        </table>
+                    </form>
+                    <form method="POST" id="login_form" ng-if="!user_authenticated">
+                        <table>
+                            <tr>
+                                <td>Login: </td>
+                                <td><input size=10 type="text" id="username"></td>
+                            </tr>
+                            <tr>
+                                <td>Hasło: </td>
+                                <td><input size=10 type="password" id="password"></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="center_cell">
+                                    <input type="submit" value="Zaloguj" id="login_button" ng-click="send_login()">
+                                <td>
+                            </tr>
+                        </table>
+                    </form>
                 </section>
                 <section class="see_also">
                     <h1>Zobacz także:</h1>
